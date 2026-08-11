@@ -8,14 +8,18 @@ import { useCreateAssignor } from '@/application/assignors/useCreateAssignor';
 import { useUpdateAssignor } from '@/application/assignors/useUpdateAssignor';
 import type { Assignor } from '@/domain/entities/Assignor';
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function onlyDigits(value: string) {
+  return value.replace(/\D/g, '');
+}
+
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 const createSchema = z.object({
   name: z.string().min(2, 'Nome deve ter ao menos 2 caracteres'),
   document: z
     .string()
-    .min(11, 'CPF/CNPJ inválido')
-    .max(18, 'CPF/CNPJ inválido')
-    .regex(/^[\d.\-\/]+$/, 'Apenas números e pontuação'),
+    .transform(onlyDigits)
+    .refine((v) => v.length === 11 || v.length === 14, 'Informe um CPF (11 dígitos) ou CNPJ (14 dígitos)'),
   email: z.string().email('E-mail inválido'),
 });
 

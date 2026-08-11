@@ -45,6 +45,31 @@ interface Props {
   onReceivableCreated?: (id: string) => void;
 }
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function SectionLabel({ step, title }: { step: number; title: string }) {
+  return (
+    <div className="flex items-center gap-2 mb-3">
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">
+        {step}
+      </span>
+      <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">{title}</span>
+    </div>
+  );
+}
+
+function PanelDivider() {
+  return <div className="border-t border-dashed border-gray-200 my-4" />;
+}
+
+function SimRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between text-sm">
+      <span className="text-gray-500">{label}</span>
+      <span className="font-medium text-gray-900">{value}</span>
+    </div>
+  );
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 export function OperatorPanel({ onReceivableCreated }: Props) {
   const [createdId, setCreatedId] = useState<string | null>(null);
@@ -110,10 +135,11 @@ export function OperatorPanel({ onReceivableCreated }: Props) {
   if (createdId && !settlementDone) {
     return (
       <div className="flex flex-col gap-5">
+        {/* Header */}
         <div className="flex items-center gap-2">
           <button
             onClick={handleReset}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
             aria-label="Voltar ao formulário"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -121,15 +147,22 @@ export function OperatorPanel({ onReceivableCreated }: Props) {
           <h3 className="font-semibold text-gray-900">Simulação de Valor Presente</h3>
         </div>
 
-        <div className="rounded-lg border border-brand-100 bg-brand-50 px-4 py-3 text-sm text-brand-700">
-          Recebível criado. Informe a taxa base para calcular o valor líquido.
+        {/* Notice */}
+        <div className="flex items-start gap-2.5 rounded-xl bg-brand-50 border border-brand-100 px-4 py-3">
+          <div className="mt-0.5 h-4 w-4 shrink-0 rounded-full bg-brand-500 flex items-center justify-center text-white text-[9px] font-bold">
+            i
+          </div>
+          <p className="text-sm text-brand-700">
+            Recebível criado. Informe a taxa base para calcular o valor líquido.
+          </p>
         </div>
 
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">
-            Taxa Base (% a.a.)
+        {/* Base Rate Input */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-gray-700 flex items-center justify-between">
+            <span>Taxa Base (% a.a.)</span>
             {selectedType && (
-              <span className="ml-2 text-xs text-gray-400 font-normal">
+              <span className="text-xs font-normal text-gray-400 bg-gray-100 rounded-md px-2 py-0.5">
                 Spread: {formatPercent(SPREAD_BY_TYPE[selectedType])}
               </span>
             )}
@@ -138,54 +171,47 @@ export function OperatorPanel({ onReceivableCreated }: Props) {
             type="number"
             step="0.01"
             min="0"
-            placeholder="ex: 13.25"
+            placeholder="ex: 13,25"
             value={baseRateInput}
             onChange={(e) => setBaseRateInput(e.target.value)}
             className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
           />
         </div>
 
+        {/* Simulation Card */}
         {(simulating || simulation) && (
-          <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
-            {simulating ? (
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <Spinner size="sm" />
-                Calculando…
+          <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+            <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-100">
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Simulação</p>
+            </div>
+            <div className="px-4 py-3 space-y-2.5">
+              {simulating ? (
+                <div className="flex items-center gap-2.5 text-sm text-gray-400 py-2">
+                  <Spinner size="sm" />
+                  <span>Calculando valor presente…</span>
+                </div>
+              ) : simulation ? (
+                <>
+                  <SimRow label="Valor de Face" value={formatCurrency(simulation.faceValue, simulation.assetCurrency)} />
+                  <SimRow label="Taxa Base" value={formatPercent(simulation.baseRate)} />
+                  <SimRow label="Spread" value={formatPercent(simulation.spread)} />
+                  <SimRow label="Prazo" value={`${simulation.termMonths} meses`} />
+                  {simulation.exchangeRateUsed && (
+                    <SimRow label="Câmbio utilizado" value={simulation.exchangeRateUsed.toFixed(4)} />
+                  )}
+                </>
+              ) : null}
+            </div>
+            {simulation && !simulating && (
+              <div className="mx-3 mb-3 rounded-lg bg-gradient-to-r from-brand-700 to-brand-600 px-4 py-3 flex items-center justify-between">
+                <span className="text-xs font-medium text-brand-200">Valor Líquido</span>
+                <span className="text-base font-bold text-white">
+                  {simulation.presentValueConverted
+                    ? formatCurrency(simulation.presentValueConverted, simulation.paymentCurrency)
+                    : formatCurrency(simulation.presentValue, simulation.assetCurrency)}
+                </span>
               </div>
-            ) : simulation ? (
-              <>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Valor de Face</span>
-                  <span className="font-medium">{formatCurrency(simulation.faceValue, simulation.assetCurrency)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Taxa Base</span>
-                  <span className="font-medium">{formatPercent(simulation.baseRate)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Spread</span>
-                  <span className="font-medium">{formatPercent(simulation.spread)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Prazo</span>
-                  <span className="font-medium">{simulation.termMonths} meses</span>
-                </div>
-                {simulation.exchangeRateUsed && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Câmbio utilizado</span>
-                    <span className="font-medium">{simulation.exchangeRateUsed.toFixed(4)}</span>
-                  </div>
-                )}
-                <div className="border-t border-gray-100 pt-3 flex justify-between">
-                  <span className="font-semibold text-gray-900">Valor Líquido</span>
-                  <span className="text-lg font-bold text-brand-700">
-                    {simulation.presentValueConverted
-                      ? formatCurrency(simulation.presentValueConverted, simulation.paymentCurrency)
-                      : formatCurrency(simulation.presentValue, simulation.assetCurrency)}
-                  </span>
-                </div>
-              </>
-            ) : null}
+            )}
           </div>
         )}
 
@@ -204,20 +230,25 @@ export function OperatorPanel({ onReceivableCreated }: Props) {
   // ─── Step 3: Settlement done ──────────────────────────────────────────────
   if (settlementDone && settlement) {
     return (
-      <div className="flex flex-col items-center gap-4 py-4 text-center">
-        <CheckCircle className="h-12 w-12 text-green-500" />
+      <div className="flex flex-col items-center gap-5 py-4 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 ring-8 ring-emerald-50">
+          <CheckCircle className="h-9 w-9 text-emerald-500" />
+        </div>
         <div>
-          <p className="font-semibold text-gray-900">Liquidação realizada!</p>
-          <p className="text-sm text-gray-500 mt-1">
-            Valor líquido:{' '}
-            <span className="font-medium text-gray-900">
-              {settlement.presentValueConverted
-                ? formatCurrency(settlement.presentValueConverted, settlement.paymentCurrency)
-                : formatCurrency(settlement.presentValue, settlement.assetCurrency)}
-            </span>
+          <p className="font-bold text-gray-900 text-base">Liquidação Realizada!</p>
+          <p className="text-sm text-gray-500 mt-1">Operação concluída com sucesso</p>
+        </div>
+        <div className="w-full rounded-xl bg-emerald-50 border border-emerald-100 px-4 py-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600 mb-1.5">
+            Valor Líquido
+          </p>
+          <p className="text-2xl font-bold text-emerald-700">
+            {settlement.presentValueConverted
+              ? formatCurrency(settlement.presentValueConverted, settlement.paymentCurrency)
+              : formatCurrency(settlement.presentValue, settlement.assetCurrency)}
           </p>
         </div>
-        <Button variant="secondary" size="sm" onClick={handleReset}>
+        <Button variant="secondary" size="sm" onClick={handleReset} className="w-full">
           Nova Operação
         </Button>
       </div>
@@ -240,75 +271,95 @@ export function OperatorPanel({ onReceivableCreated }: Props) {
   }));
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
-      <Select
-        label="Cedente"
-        placeholder="Selecione o cedente"
-        options={assignorOptions}
-        error={errors.assignorId?.message}
-        {...register('assignorId')}
-      />
-
-      <Select
-        label="Tipo de Recebível"
-        options={typeOptions}
-        error={errors.type?.message}
-        {...register('type')}
-      />
-
-      <Input
-        label="Valor de Face"
-        type="number"
-        step="0.01"
-        min="0"
-        placeholder="0,00"
-        error={errors.faceValue?.message}
-        {...register('faceValue')}
-      />
-
-      <div className="grid grid-cols-2 gap-3">
-        <Select
-          label="Moeda do Ativo"
-          options={currencyOptions}
-          error={errors.assetCurrency?.message}
-          {...register('assetCurrency')}
-        />
-        <Select
-          label="Moeda Pgto."
-          options={currencyOptions}
-          error={errors.paymentCurrency?.message}
-          {...register('paymentCurrency')}
-        />
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col" noValidate>
+      {/* Section 1 */}
+      <div className="pb-1">
+        <SectionLabel step={1} title="Identificação" />
+        <div className="space-y-3">
+          <Select
+            label="Cedente"
+            placeholder="Selecione o cedente"
+            options={assignorOptions}
+            error={errors.assignorId?.message}
+            {...register('assignorId')}
+          />
+          <Select
+            label="Tipo de Recebível"
+            options={typeOptions}
+            error={errors.type?.message}
+            {...register('type')}
+          />
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Input
-          label="Vencimento"
-          type="date"
-          error={errors.maturityDate?.message}
-          {...register('maturityDate')}
-        />
-        <Input
-          label="Prazo (meses)"
-          type="number"
-          min="1"
-          step="1"
-          placeholder="12"
-          error={errors.termMonths?.message}
-          {...register('termMonths')}
-        />
+      <PanelDivider />
+
+      {/* Section 2 */}
+      <div className="pb-1">
+        <SectionLabel step={2} title="Dados Financeiros" />
+        <div className="space-y-3">
+          <Input
+            label="Valor de Face"
+            type="number"
+            step="0.01"
+            min="0"
+            placeholder="0,00"
+            error={errors.faceValue?.message}
+            {...register('faceValue')}
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <Select
+              label="Moeda do Ativo"
+              options={currencyOptions}
+              error={errors.assetCurrency?.message}
+              {...register('assetCurrency')}
+            />
+            <Select
+              label="Moeda Pgto."
+              options={currencyOptions}
+              error={errors.paymentCurrency?.message}
+              {...register('paymentCurrency')}
+            />
+          </div>
+        </div>
       </div>
 
-      <Button type="submit" loading={creating} className="w-full mt-1">
-        {creating ? (
-          <>
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Registrando…
-          </>
-        ) : (
-          'Registrar Recebível'
-        )}
-      </Button>
+      <PanelDivider />
+
+      {/* Section 3 */}
+      <div className="pb-1">
+        <SectionLabel step={3} title="Vencimento e Prazo" />
+        <div className="grid grid-cols-2 gap-3">
+          <Input
+            label="Vencimento"
+            type="date"
+            error={errors.maturityDate?.message}
+            {...register('maturityDate')}
+          />
+          <Input
+            label="Prazo (meses)"
+            type="number"
+            min="1"
+            step="1"
+            placeholder="12"
+            error={errors.termMonths?.message}
+            {...register('termMonths')}
+          />
+        </div>
+      </div>
+
+      <div className="mt-5">
+        <Button type="submit" loading={creating} className="w-full">
+          {creating ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Registrando…
+            </>
+          ) : (
+            'Registrar Recebível'
+          )}
+        </Button>
+      </div>
     </form>
   );
 }

@@ -72,29 +72,36 @@ export function SimulateModal({ receivable, onClose }: Props) {
         </div>
 
         {(simulating || simulation) && (
-          <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-2.5">
-            {simulating ? (
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <Spinner size="sm" />
-                Calculando…
-              </div>
-            ) : simulation ? (
-              <>
-                <Row label="Taxa Base" value={formatPercent(simulation.baseRate)} />
-                <Row label="Spread" value={formatPercent(simulation.spread)} />
-                {simulation.exchangeRateUsed && (
-                  <Row label="Câmbio" value={simulation.exchangeRateUsed.toFixed(4)} />
-                )}
-                <div className="border-t border-gray-200 pt-2.5 flex justify-between items-center">
-                  <span className="font-semibold text-gray-900">Valor Líquido</span>
-                  <span className="text-lg font-bold text-brand-700">
-                    {simulation.presentValueConverted
-                      ? formatCurrency(simulation.presentValueConverted, simulation.paymentCurrency)
-                      : formatCurrency(simulation.presentValue, simulation.assetCurrency)}
-                  </span>
+          <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+            <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-100">
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Simulação</p>
+            </div>
+            <div className="px-4 py-3">
+              {simulating ? (
+                <div className="flex items-center gap-2.5 text-sm text-gray-400 py-2">
+                  <Spinner size="sm" />
+                  Calculando…
                 </div>
-              </>
-            ) : null}
+              ) : simulation ? (
+                <div className="space-y-2.5">
+                  <Row label="Taxa Base" value={formatPercent(simulation.baseRate)} />
+                  <Row label="Spread" value={formatPercent(simulation.spread)} />
+                  {simulation.exchangeRateUsed && (
+                    <Row label="Câmbio" value={simulation.exchangeRateUsed.toFixed(4)} />
+                  )}
+                </div>
+              ) : null}
+            </div>
+            {simulation && !simulating && (
+              <div className="mx-3 mb-3 rounded-lg bg-gradient-to-r from-brand-700 to-brand-600 px-4 py-2.5 flex items-center justify-between">
+                <span className="text-xs font-medium text-brand-200">Valor Líquido</span>
+                <span className="text-base font-bold text-white">
+                  {simulation.presentValueConverted
+                    ? formatCurrency(simulation.presentValueConverted, simulation.paymentCurrency)
+                    : formatCurrency(simulation.presentValue, simulation.assetCurrency)}
+                </span>
+              </div>
+            )}
           </div>
         )}
 
