@@ -1,6 +1,6 @@
-# SRM MCC — Credit Assignment UI
+# MCC — Credit Assignment UI
 
-Interface web para o sistema de **cessão de crédito** da SRM MCC. Permite ao operador registrar recebíveis, simular o valor presente líquido em tempo real e executar liquidações, além de gerenciar cedentes e consultar o extrato consolidado de operações.
+Interface web para o sistema de **cessão de crédito** da MCC. Permite ao operador registrar recebíveis, simular o valor presente líquido em tempo real e executar liquidações, além de gerenciar cedentes e consultar o extrato consolidado de operações.
 
 ---
 
@@ -22,7 +22,7 @@ Interface web para o sistema de **cessão de crédito** da SRM MCC. Permite ao o
 |---|---|
 | Node.js | 20+ |
 | npm / yarn / pnpm | qualquer recente |
-| Backend `srm-mcc-credit-assignment-api` | rodando em `localhost:8080` |
+| Backend `mcc-credit-assignment-api` | rodando em `localhost:8080` |
 
 ---
 

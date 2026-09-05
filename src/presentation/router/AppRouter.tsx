@@ -11,7 +11,7 @@ export function AppRouter() {
         <Route index element={<Navigate to="/receivables" replace />} />
         <Route path="receivables" element={<ReceivablesPage />} />
         <Route path="assignors" element={<AssignorsPage />} />
-        <Route path="settlements" element={<SettlementStatementPage />} />
+        <Route path="reports" element={<SettlementStatementPage />} />
         <Route path="*" element={<Navigate to="/receivables" replace />} />
       </Route>
     </Routes>

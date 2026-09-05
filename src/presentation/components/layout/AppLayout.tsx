@@ -29,7 +29,7 @@ export function AppLayout() {
           >
             <Menu className="h-5 w-5" />
           </button>
-          <span className="font-semibold text-gray-900 text-sm">SRM Credit</span>
+          <span className="font-semibold text-gray-900 text-sm">Credit</span>
         </header>
 
         <main className="flex-1 overflow-y-auto focus:outline-none" tabIndex={-1}>

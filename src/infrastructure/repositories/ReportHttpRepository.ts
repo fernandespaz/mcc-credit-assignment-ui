@@ -7,8 +7,8 @@ export class ReportHttpRepository implements IReportRepository {
     const { startDate, endDate, assignorId, paymentCurrency, page, size } = filters;
 
     const params: Record<string, string | number> = { page, size };
-    if (startDate) params['startDate'] = startDate;
-    if (endDate) params['endDate'] = endDate;
+    if (startDate) params['startDate'] = `${startDate}T00:00:00`;
+    if (endDate) params['endDate'] = `${endDate}T23:59:59`;
     if (assignorId) params['assignorId'] = assignorId;
     if (paymentCurrency) params['paymentCurrency'] = paymentCurrency;
 

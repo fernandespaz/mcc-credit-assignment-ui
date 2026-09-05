@@ -5,7 +5,7 @@ import { cn } from '@/lib/cn';
 const navItems = [
   { to: '/receivables', label: 'Recebíveis', icon: LayoutGrid },
   { to: '/assignors', label: 'Cedentes', icon: Users },
-  { to: '/settlements', label: 'Extrato', icon: FileBarChart },
+  { to: '/reports', label: 'Relatórios', icon: FileBarChart },
 ];
 
 interface SidebarProps {
@@ -38,7 +38,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
               <CreditCard className="h-4 w-4 text-brand-300" />
             </div>
             <div>
-              <h1 className="text-sm font-bold tracking-tight">SRM Credit</h1>
+              <h1 className="text-sm font-bold tracking-tight">Credit</h1>
               <p className="text-xs text-brand-300 mt-0.5">Cessão de Crédito</p>
             </div>
           </div>
