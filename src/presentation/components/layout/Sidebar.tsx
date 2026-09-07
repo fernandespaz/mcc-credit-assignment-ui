@@ -1,6 +1,7 @@
-import { NavLink } from 'react-router-dom';
-import { LayoutGrid, Users, FileBarChart, X, CreditCard } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { LayoutGrid, Users, FileBarChart, X, CreditCard, LogOut } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { useAuth } from '@/application/auth/AuthContext';
 
 const navItems = [
   { to: '/receivables', label: 'Recebíveis', icon: LayoutGrid },
@@ -14,6 +15,14 @@ interface SidebarProps {
 }
 
 export function Sidebar({ open = false, onClose }: SidebarProps) {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  function handleLogout() {
+    logout();
+    navigate('/login', { replace: true });
+  }
+
   return (
     <>
       {/* Mobile backdrop */}
@@ -73,6 +82,22 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
         </nav>
 
         <div className="px-5 py-4 border-t border-white/10">
+          {user && (
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-white">{user.username}</p>
+                <p className="text-xs text-brand-300">{user.role.replace('ROLE_', '')}</p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="shrink-0 rounded-lg p-1.5 text-white/60 hover:bg-white/10 hover:text-white transition-colors"
+                aria-label="Sair"
+                title="Sair"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
+          )}
           <p className="text-xs text-white/30">v1.0.0</p>
         </div>
       </aside>

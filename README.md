@@ -9,6 +9,8 @@ Interface web para o sistema de **cessão de crédito** da MCC. Permite ao opera
 - [Pré-requisitos](#pré-requisitos)
 - [Configuração do ambiente](#configuração-do-ambiente)
 - [Como executar](#como-executar)
+- [Autenticação](#autenticação)
+- [UI/UX](#uiux)
 - [Arquitetura](#arquitetura)
 - [Estrutura de pastas](#estrutura-de-pastas)
 - [Principais fluxos](#principais-fluxos)
@@ -60,6 +62,52 @@ npm run preview
 # 5. Linting
 npm run lint
 ```
+
+---
+
+## Autenticação
+
+A aplicação exige login (`POST /api/v1/auth/login`) para acessar qualquer rota protegida — ver [`ProtectedRoute.tsx`](src/presentation/router/ProtectedRoute.tsx) e [`AuthContext.tsx`](src/application/auth/AuthContext.tsx).
+
+| Ambiente | Usuário | Senha | Observação |
+|---|---|---|---|
+| Local / desenvolvimento | `admin` | `admin123` | Usuário fixo (seed) do backend local, role `ROLE_ADMIN` |
+| Produção | — | — | Não há usuário padrão; o acesso depende de cadastro prévio na base de dados do backend |
+
+> O token JWT (`accessToken`) é armazenado em `sessionStorage` e enviado automaticamente via header `Authorization: Bearer <token>` em todas as chamadas (exceto o próprio login). Ao expirar ou receber `401`, o usuário é redirecionado para `/login`.
+
+### Logout
+
+O botão de logout fica no rodapé da [`Sidebar.tsx`](src/presentation/components/layout/Sidebar.tsx), ao lado do usuário autenticado. Ao clicar:
+
+1. `logout()` (exposto pelo `useAuth()` do [`AuthContext.tsx`](src/application/auth/AuthContext.tsx)) remove o token e os dados do usuário do `sessionStorage` (via [`authStorage.ts`](src/lib/authStorage.ts)) e cancela o timer de expiração automática.
+2. O estado de autenticação é zerado, e o usuário é redirecionado para `/login`.
+
+O mesmo efeito (remoção do token + redirecionamento) ocorre automaticamente quando qualquer chamada à API retorna `401` — não há endpoint de logout no backend, então "deslogar" é sempre uma operação local do front.
+
+---
+
+## UI/UX
+
+Visão geral das principais telas da aplicação.
+
+### Login
+
+Tela de acesso, exibida para usuários não autenticados (redirecionamento automático via `ProtectedRoute`).
+
+![Tela de login](docs/screenshots/login.png)
+
+### Recebíveis — Painel do Operador
+
+Listagem de recebíveis com indicadores (total, pendentes, liquidados) e painel lateral para simulação de valor presente em tempo real antes da liquidação.
+
+![Tela de recebíveis com simulação](docs/screenshots/recebiveis-simulacao.png)
+
+### Cedentes
+
+Cadastro e gestão de cedentes, com status (ativo/inativo) e ações de edição/desativação.
+
+![Tela de cedentes](docs/screenshots/cedentes.png)
 
 ---
 
