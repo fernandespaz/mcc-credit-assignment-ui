@@ -56,7 +56,7 @@ export function LoginPage() {
           onSubmit={handleSubmit}
           className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
         >
-          <h2 className="text-sm font-semibold text-gray-900">Entrar</h2>
+
 
           <Input
             label="Usuário"
