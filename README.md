@@ -11,6 +11,7 @@ Interface web para o sistema de **cessão de crédito** da MCC. Permite ao opera
 - [Como executar](#como-executar)
 - [Autenticação](#autenticação)
 - [UI/UX](#uiux)
+- [Deploy (Docker)](#deploy-docker)
 - [Arquitetura](#arquitetura)
 - [Estrutura de pastas](#estrutura-de-pastas)
 - [Principais fluxos](#principais-fluxos)
@@ -108,6 +109,55 @@ Listagem de recebíveis com indicadores (total, pendentes, liquidados) e painel 
 Cadastro e gestão de cedentes, com status (ativo/inativo) e ações de edição/desativação.
 
 ![Tela de cedentes](docs/screenshots/cedentes.png)
+
+---
+
+## Deploy (Docker)
+
+A aplicação é empacotada em uma imagem Docker **multi-stage** (build com Node → runtime com Nginx), pronta para rodar em qualquer serviço de container da AWS (ECS/Fargate, App Runner, EKS etc.).
+
+### Por que a URL da API é resolvida em runtime, não em build time
+
+Variáveis `VITE_*` são embutidas no bundle **no momento do build** — isso tornaria necessário gerar uma imagem Docker por ambiente (dev/staging/produção). Para evitar isso, a mesma imagem é reaproveitada em todos os ambientes:
+
+1. O build gera `dist/env-config.js` com um placeholder (`__API_BASE_URL__`), carregado pelo `index.html` **antes** do bundle React.
+2. No start do container, [`docker/docker-entrypoint.sh`](docker/docker-entrypoint.sh) substitui o placeholder pelo valor da variável de ambiente `API_BASE_URL` do container/task definition.
+3. Em runtime, [`src/lib/runtimeConfig.ts`](src/lib/runtimeConfig.ts) lê `window.__APP_CONFIG__.API_BASE_URL` (com fallback para `VITE_API_BASE_URL` do build local, usado em `npm run dev`/`npm run build` fora do Docker).
+
+### Build da imagem
+
+```bash
+docker build -t mcc-credit-assignment-ui .
+```
+
+### Rodando localmente apontando para o backend em produção (AWS)
+
+> ⚠️ O endereço abaixo (`http://alb-backend-994665047.sa-east-1.elb.amazonaws.com:8080`) é o Application Load Balancer do backend na AWS. O caminho `/actuator/health` exposto nele serve **apenas** para checagem de saúde (health check) — o front nunca deve chamá-lo, apenas os endpoints `/api/v1/**`.
+
+```bash
+docker run -p 8080:8080 \
+  -e API_BASE_URL="http://alb-backend-994665047.sa-east-1.elb.amazonaws.com:8080" \
+  mcc-credit-assignment-ui
+```
+
+A aplicação fica disponível em `http://localhost:8080`.
+
+### Variáveis de ambiente do container
+
+| Variável | Obrigatória | Descrição |
+|---|---|---|
+| `API_BASE_URL` | Recomendada | URL base do backend (ex.: ALB da AWS). Se omitida, o front tenta chamadas relativas (`/api/...`), o que só funciona se a API estiver atrás do mesmo domínio/proxy reverso do front. |
+
+### Nginx e SPA routing
+
+O [`docker/nginx.conf`](docker/nginx.conf) serve os arquivos estáticos do build (`dist/`) e faz fallback de qualquer rota desconhecida para `index.html` (necessário para o `react-router-dom` funcionar em navegação direta por URL, ex.: `/reports`). `index.html` e `env-config.js` são servidos sem cache (para garantir que trocas de ambiente e novos deploys sejam refletidos imediatamente); assets com hash (`*.js`, `*.css`, imagens) usam cache agressivo (`max-age` de 1 ano).
+
+### Deploy na AWS (visão geral)
+
+1. Build e push da imagem para um registry (ECR).
+2. Deploy em ECS/Fargate (ou serviço equivalente), configurando a variável de ambiente `API_BASE_URL` na task definition apontando para o ALB do backend.
+3. Expor o serviço via seu próprio ALB/CloudFront na porta `8080` do container.
+4. Validar o backend antes do deploy do front usando `GET {API_BASE_URL}/actuator/health` (fora do fluxo da aplicação, apenas para diagnóstico de infraestrutura).
 
 ---
 
