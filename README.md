@@ -132,11 +132,11 @@ docker build -t mcc-credit-assignment-ui .
 
 ### Rodando localmente apontando para o backend em produção (AWS)
 
-> ⚠️ O endereço abaixo (`http://alb-backend-994665047.sa-east-1.elb.amazonaws.com:8080`) é o Application Load Balancer do backend na AWS. O caminho `/actuator/health` exposto nele serve **apenas** para checagem de saúde (health check) — o front nunca deve chamá-lo, apenas os endpoints `/api/v1/**`.
+> ⚠️ O endereço abaixo (`https://dfpzsolutions.com.br`) é o domínio do backend em produção. O caminho `/actuator/health` exposto nele serve **apenas** para checagem de saúde (health check) — o front nunca deve chamá-lo, apenas os endpoints `/api/v1/**`.
 
 ```bash
 docker run -p 8080:8080 \
-  -e API_BASE_URL="http://alb-backend-994665047.sa-east-1.elb.amazonaws.com:8080" \
+  -e API_BASE_URL="https://dfpzsolutions.com.br" \
   mcc-credit-assignment-ui
 ```
 
